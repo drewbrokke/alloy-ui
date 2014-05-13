@@ -352,6 +352,52 @@ var FormBuilder = A.Component.create({
         },
 
         /**
+         * Handles the logic to save an event.
+         *
+         * @method _handleSaveEvent
+         * @param event
+         * @protected
+         */
+        _handleSaveEvent: function() {
+            var instance = this,
+                editingField = instance.editingField,
+                currentFieldNames = instance.HASH.names,
+
+                oldValue,
+                newValue;
+
+            if (editingField) {
+                var modelList = instance.propertyList.get('data');
+
+                modelList.each(function(model) {
+                    var attributeName = model.get('attributeName'),
+                        attributeValue = model.get('value');
+
+                    if (attributeName === 'name' && model._changeEvent) {
+                        oldValue = model.lastChange.value.prevVal;
+                        newValue = attributeValue;
+                    }
+
+                    delete model._changeEvent;
+                });
+
+                if(currentFieldNames[newValue]) {
+                    window.alert('Please enter a unique field name.');
+                    editingField.focus();
+                }
+
+                else {
+                    if(oldValue && newValue) {
+                        currentFieldNames[oldValue] = false;
+                        currentFieldNames[newValue] = true;
+                    }
+
+                    FormBuilder.superclass._handleSaveEvent.apply(this, arguments);
+                }
+            }
+        },
+
+        /**
          * Sync the `A.FormBuilder` UI. Lifecycle.
          *
          * @method syncUI
@@ -954,50 +1000,16 @@ var FormBuilder = A.Component.create({
          */
         _onSave: function() {
             var instance = this,
-                editingField = instance.editingField,
-                currentFieldNames = instance.HASH.names,
-
-                oldValue,
-                newValue,
-                duplicateFlag;
+                editingField = instance.editingField;
 
             if (editingField) {
                 var modelList = instance.propertyList.get('data');
 
                 modelList.each(function(model) {
-                    var attributeName = model.get('attributeName'),
-                        attributeValue = model.get('value');
-
-                    if (attributeName === 'name' && model._changeEvent) {
-                        oldValue = model.lastChange.value.prevVal;
-                        newValue = attributeValue;
-                    }
-
-                    else {
-                        editingField.set(attributeName, attributeValue);
-                    }
-
-                    model._changeEvent = null;
+                    editingField.set(model.get('attributeName'), model.get('value'));
                 });
 
-                if(currentFieldNames[newValue]) {
-                    alert('Please enter a unique field name.');
-
-                    instance.selectFields(editingField);
-
-                    duplicateFlag = true;
-                }
-
-                if(!duplicateFlag) {
-                    if(oldValue && newValue) {
-                        currentFieldNames[oldValue] = false;
-                        currentFieldNames[newValue] = true;
-
-                        editingField.set('name', newValue);
-                    }
-
-                    instance._syncUniqueField(editingField);
-                }
+                instance._syncUniqueField(editingField);
             }
         },
 
