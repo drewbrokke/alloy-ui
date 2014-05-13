@@ -345,6 +345,10 @@ var FormBuilder = A.Component.create({
                 CSS_FORM_BUILDER_FIELD);
             instance.dropContainer.delegate('mouseout', A.bind(instance._onMouseOutField, instance), '.' +
                 CSS_FORM_BUILDER_FIELD);
+
+            instance.HASH = {
+                names: {}
+            };
         },
 
         /**
@@ -523,6 +527,8 @@ var FormBuilder = A.Component.create({
             else {
                 container.append(boundingBox);
             }
+
+            instance.HASH.names[field._state.data.name.value] = true;
 
             instance._syncUniqueField(field);
 
@@ -948,16 +954,50 @@ var FormBuilder = A.Component.create({
          */
         _onSave: function() {
             var instance = this,
-                editingField = instance.editingField;
+                editingField = instance.editingField,
+                currentFieldNames = instance.HASH.names,
+
+                oldValue,
+                newValue,
+                duplicateFlag;
 
             if (editingField) {
                 var modelList = instance.propertyList.get('data');
 
                 modelList.each(function(model) {
-                    editingField.set(model.get('attributeName'), model.get('value'));
+                    var attributeName = model.get('attributeName'),
+                        attributeValue = model.get('value');
+
+                    if (attributeName === 'name' && model._changeEvent) {
+                        oldValue = model.lastChange.value.prevVal;
+                        newValue = attributeValue;
+                    }
+
+                    else {
+                        editingField.set(attributeName, attributeValue);
+                    }
+
+                    model._changeEvent = null;
                 });
 
-                instance._syncUniqueField(editingField);
+                if(currentFieldNames[newValue]) {
+                    alert('Please enter a unique field name.');
+
+                    instance.selectFields(editingField);
+
+                    duplicateFlag = true;
+                }
+
+                if(!duplicateFlag) {
+                    if(oldValue && newValue) {
+                        currentFieldNames[oldValue] = false;
+                        currentFieldNames[newValue] = true;
+
+                        editingField.set('name', newValue);
+                    }
+
+                    instance._syncUniqueField(editingField);
+                }
             }
         },
 
