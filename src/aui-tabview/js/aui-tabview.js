@@ -116,6 +116,21 @@ A.Tab = A.Component.create({
         },
 
         /**
+         * Update 'aria-expanded' attribute on tab.
+         *
+         * @method _setAriaExpanded
+         * @param tab
+         * @protected
+         */
+        updateAriaExpanded: function() {
+            var instance = this,
+                expanded = instance.get('boundingBox').hasClass(A.TabviewBase._classNames.selectedTab),
+                contentBox = instance.get('contentBox');
+
+            contentBox.set('aria-expanded', expanded);
+        },
+
+        /**
          * Fire after `disabled` class been set on the UI.
          *
          * @method _afterUiSetDisabled
@@ -126,6 +141,31 @@ A.Tab = A.Component.create({
             var instance = this;
 
             instance.get('boundingBox').toggleClass(getClassName('disabled'), val);
+        },
+
+
+        /**
+         * Set Aria attributes on a Tab.
+         *
+         * @method _setAriaElements
+         * @param tab
+         * @protected
+         */
+        _initAria: function() {
+            var instance = this,
+                contentBox = instance.get('contentBox'),
+                boundingBox = instance.get('boundingBox'),
+                panelNodeId = instance.get('panelNode').getAttribute('id'),
+                expanded = instance.get('boundingBox').hasClass(A.TabviewBase._classNames.selectedTab);
+
+            contentBox.setAttrs({
+                'aria-controls': panelNodeId,
+                'aria-expanded': expanded,
+                'aria-label': instance.get('label'),
+                'role': 'tab'
+            });
+
+            boundingBox.set('role', 'presentation');
         },
 
         /**
@@ -298,6 +338,24 @@ A.TabView = A.Component.create({
 
             instance.after(instance._afterSyncUI, instance, 'syncUI');
             instance.after('typeChange', instance._afterTypeChange);
+            instance.get('contentBox').on('key', A.bind(instance._onEnterKey, instance), 'down:13');
+        },
+
+        /**
+         * Fire on ;enter' key press when on tab.
+         *
+         * @method _onEnterKey
+         * @param event
+         * @protected
+         */
+        _onEnterKey: function(event) {
+            var instance = this,
+                target = event.target,
+                tabviewIndex = target.getAttribute('data-tabview-index');
+
+            if (tabviewIndex) {
+                instance.selectChild(tabviewIndex);
+            }
         },
 
         /**
@@ -365,10 +423,14 @@ A.TabView = A.Component.create({
             if (newVal) {
                 newVal.get('boundingBox').addClass(selectedTabClassName);
                 newVal.get('panelNode').addClass(selectedTabClassName);
+
+                newVal.updateAriaExpanded();
             }
             if (prevVal) {
                 prevVal.get('boundingBox').removeClass(selectedTabClassName);
                 prevVal.get('panelNode').removeClass(selectedTabClassName);
+
+                prevVal.updateAriaExpanded();
             }
         },
 
@@ -406,6 +468,9 @@ A.TabView = A.Component.create({
                     renderTo = null;
                 }
                 child.render(renderTo);
+
+                child.get('contentBox').removeAttribute('href')
+                .setAttribute('data-tabview-index', child.get('index'));
             });
         },
 
