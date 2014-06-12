@@ -162,7 +162,7 @@ A.Tab = A.Component.create({
                 expanded = instance.get('boundingBox').hasClass(A.TabviewBase._classNames.selectedTab);
 
             contentBox.setAttrs({
-                'aria-controls': panelNodeId ? panelNodeId : panelNode.get('_yuid'),
+                'aria-controls': panelNodeId ? panelNodeId : A.stamp(panelNode),
                 'aria-expanded': expanded,
                 'aria-label': instance.get('label'),
                 'role': 'tab'
