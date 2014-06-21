@@ -24,6 +24,8 @@
             "aui-button",
             "aui-collection",
             "aui-diagram-builder-base",
+            "aui-io-request",
+            "aui-modal",
             "aui-sortable-list",
             "aui-tabview"
         ],

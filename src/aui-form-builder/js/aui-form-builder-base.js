@@ -35,7 +35,35 @@ var L = A.Lang,
     CSS_FORM_BUILDER_FIELD = getCN('form', 'builder', 'field'),
     CSS_FORM_BUILDER_PLACEHOLDER = getCN('form', 'builder', 'placeholder'),
 
-    TPL_PLACEHOLDER = '<div class="' + CSS_FORM_BUILDER_PLACEHOLDER + '"></div>';
+    TPL_PLACEHOLDER = '<div class="' + CSS_FORM_BUILDER_PLACEHOLDER + '"></div>',
+
+    keyBackspace = 8,
+    keyEnter = 13,
+    keyEscape = 27,
+    keyLeftArrow = 37,
+    keyUpArrow = 38,
+    keyRightArrow = 39,
+    keyDownArrow = 40,
+    keyDelete = 46,
+    keyLowerC = 67,
+    keyLowerD = 68,
+    keyLowerE = 69,
+    keyLowerF = 70,
+    keyLowerJ = 74,
+    keyLowerK = 75,
+    keyLowerN = 78,
+    keyNumberKeys = {
+        48: 0,
+        49: 1,
+        50: 2,
+        51: 3,
+        52: 4,
+        53: 5,
+        54: 6,
+        55: 7,
+        56: 8,
+        57: 9,
+    };
 
 /**
  * A base class for `A.FormBuilderAvailableField`.
@@ -345,6 +373,8 @@ var FormBuilder = A.Component.create({
                 CSS_FORM_BUILDER_FIELD);
             instance.dropContainer.delegate('mouseout', A.bind(instance._onMouseOutField, instance), '.' +
                 CSS_FORM_BUILDER_FIELD);
+
+            instance._bindKeypress();
         },
 
         /**
@@ -385,6 +415,7 @@ var FormBuilder = A.Component.create({
                     builder: instance,
                     parent: instance
                 };
+
 
             if (isFormBuilderField(config)) {
                 config.setAttrs(attrs);
@@ -490,6 +521,461 @@ var FormBuilder = A.Component.create({
             field.get('parent').removeField(field);
 
             parent.addField(field, index);
+        },
+
+        keyboardChooseProperty: function(field, attributeName) {
+            var instance = this;
+            var modelList = instance.propertyList.get('data');
+
+            modelList.each(
+                function(model) {
+                    var editorName = model.get('editor').name;
+                    if (attributeName === model.get('attributeName')) {
+                        if (editorName === 'radioCellEditor' || editorName === 'dropDownCellEditor') {
+                            instance.modalChoices(field, attributeName, model);
+                        }
+                        else if (editorName === 'form-builder-options-editor'){
+                            instance.modalOptionsEditor(field, attributeName, model);
+                        }
+                        else {
+                            instance.modalTextInput(field, attributeName, editorName);
+                        }
+                    }
+                }
+            );
+        },
+
+        keyboardUpdateProperties: function(field, attributeName, value) {
+            var instance = this;
+            var modelList = instance.propertyList.get('data');
+
+            modelList.each(
+                function(model) {
+                    if (attributeName === model.get('attributeName')) {
+                        if (attributeName === 'name') {
+                            value = L.trim(value);
+                            value = L.String.toLowerCase(value);
+                            value = L.String.camelize(value, ' ');
+                        }
+
+                        if (attributeName === 'label') {
+                            value = L.String.capitalize(value);
+                        }
+
+                        field.set(model.get('attributeName'), value);
+                    }
+                }
+            );
+
+            instance.simulateFocusField(field);
+        },
+
+        modalAvailableProperties: function(field) {
+            var instance = this;
+            var modelList = instance.propertyList.get('data');
+            var content = A.Node.create('<div class="edit-properties-modal"></div>');
+            var i = 1;
+
+            modelList.each(
+                function(model) {
+                    var attributeName = model.get('attributeName');
+                    var attributeLabel = '(' + i + ') ' +  model.get('name');
+                    var button = A.Node.create('<button class="btn btn-primary btn-block modal-keyboard-button properties-button" value="' + attributeName + '">' + attributeLabel + '</button>');
+
+                    if (!model.get('editor')) {
+                        button.addClass('disabled');
+                    }
+                    else {
+                        button.addClass('enabled');
+                    }
+
+                    content.appendChild(button);
+
+                    i++;
+                }
+            );
+
+            var editPropertiesModal = new A.Modal(
+                {
+                    bodyContent: content,
+                    centered: true,
+                    destroyOnHide: true,
+                    headerContent: 'Please choose a property to edit',
+                    render: '#newModal',
+                    zIndex: 1001
+                }
+            ).render();
+
+            A.all('.properties-button.enabled').on('click',
+                function(event) {
+                    var editProperty = event.target._node.value;
+
+                    editPropertiesModal.hide();
+
+                    instance.keyboardChooseProperty(field, editProperty);
+                }
+            );
+
+            A.one('.properties-button.enabled').focus();
+        },
+
+        modalChoices: function(field, attributeName, model) {
+            var instance = this;
+            var content = A.Node.create('<div class="choices-modal"></div>');
+            var options = model.get('editor').get('options');
+            var i = 1;
+
+            for (var key in options) {
+                var label = '(' + i + ') ' + options[key];
+                var value = key;
+
+                var button = A.Node.create('<button class="btn btn-primary btn-block choices-button modal-keyboard-button" value="' + value + '">' + label + '</button>');
+
+                if (button.get('value') === 'false') {
+                    button.replaceClass('btn-primary', 'btn-danger');
+                }
+
+                content.appendChild(button);
+
+                i++;
+            }
+
+            var modalChoices = new A.Modal(
+                {
+                    bodyContent: content,
+                    centered: true,
+                    destroyOnHide: true,
+                    render: '#newModal',
+                    zIndex: 1001
+                }
+            ).render();
+
+            A.all('.choices-button').on('click',
+                function(event) {
+                    var value = event.target._node.value;
+
+                    modalChoices.hide();
+
+                    instance.keyboardUpdateProperties(field, attributeName, value);
+                }
+            );
+
+            A.one('.choices-button').focus();
+        },
+
+        modalOptionsEditor: function(field, attributeName, model) {
+            var instance = this;
+            var content = A.Node.create('<div class="options-editor-modal"></div>');
+            var form = A.Node.create('<form role="form" class="property-form"></form>');
+            var options = model.get('editor').get('options');
+
+            for (var key in options) {
+                var label = options[key];
+                var value = key;
+
+                var optionWrapper = A.Node.create('<div class="form-group option-wrapper"></div>');
+
+                var optionUp = A.Node.create('<button class="btn btn-default options-editor-button pull-left reorder up"><span class="glyphicon glyphicon-chevron-up"></span></button>');
+                var optionDown = A.Node.create('<button class="btn btn-default options-editor-button pull-left reorder down"><span class="glyphicon glyphicon-chevron-down"></span></button>');
+
+                var optionLabel = A.Node.create('<div class="col-xs-4"><input type="text" class="form-control option-input option-label" placeholder="Option Label" value="' + label + '"></div>');
+                var optionValue = A.Node.create('<div class="col-xs-4"><input type="text" class="form-control option-input option-value" placeholder="Option Value" value="' + value + '"></div>');
+
+                var addOptionButton = A.Node.create('<button class="btn btn-success options-editor-button add"><span class="glyphicon glyphicon-plus"></span></button>');
+                var deleteButton = A.Node.create('<button class="btn btn-danger options-editor-button delete"><span class="glyphicon glyphicon-remove"></span></button>');
+
+                optionWrapper.appendChild(optionUp);
+                optionWrapper.appendChild(optionDown);
+                optionWrapper.appendChild(optionLabel);
+                optionWrapper.appendChild(optionValue);
+                optionWrapper.appendChild(addOptionButton);
+                optionWrapper.appendChild(deleteButton);
+
+                form.appendChild(optionWrapper);
+            }
+
+            var saveOptionsButton = A.Node.create('<button class="btn btn-primary btn-block options-editor-button save">Save Options</button>');
+
+            content.appendChild(form);
+            content.appendChild(saveOptionsButton);
+
+
+            var modalOptionsEditor = new A.Modal(
+                {
+                    bodyContent: content,
+                    centered: true,
+                    destroyOnHide: true,
+                    id: 'options-editor',
+                    render: '#newModal',
+                    zIndex: 1001
+                }
+            ).render();
+
+            content.delegate('click', instance.reorderOptions, '.options-editor-button.reorder');
+
+            content.delegate('click', instance.modalOptionsEditorDeleteOption, '.options-editor-button.delete');
+
+            content.delegate('click', instance.modalOptionsEditorAddOption, '.options-editor-button.add');
+
+            content.delegate('click', instance.getOptionsValues, '.options-editor-button.save', instance, field, attributeName, modalOptionsEditor);
+
+            A.one('.form-control').focus();
+        },
+
+        reorderOptions: function(event) {
+            var instance = this;
+            var target = event.target;
+            var group = target.ancestor('.option-wrapper');
+            var swapNode;
+
+
+            if (target.hasClass('up')) {
+                swapNode = group.previous();
+
+                if (swapNode !== null) {
+                    group.remove();
+                    swapNode.placeBefore(group);
+                }
+            }
+            else if (target.hasClass('down')) {
+                swapNode = group.next();
+
+                if (swapNode !== null) {
+                    group.remove();
+                    swapNode.placeAfter(group);
+                }
+            }
+
+            target.focus();
+
+            event.halt();
+        },
+
+        getOptionsValues: function(event, field, attributeName, widget) {
+            var instance = this;
+            var optionLabels = A.all('.option-label')._nodes;
+            var optionValues = A.all('.option-value')._nodes;
+            var valueArray = [];
+            var valueObject = {};
+
+            event.halt();
+
+            for (var i = 0; i < optionValues.length; i++) {
+                var option = {};
+                var label = optionLabels[i].value;
+
+                value = optionValues[i].value;
+
+                option.label = label;
+                option.value = value;
+
+                valueObject[value] = label;
+
+                valueArray.push(option);
+            }
+
+            widget.hide();
+
+            field.predefinedValueEditor.set('options', valueObject);
+
+            instance.keyboardUpdateProperties(field, attributeName, valueArray);
+        },
+
+        modalOptionsEditorAddOption: function(event) {
+            var instance = this;
+            var group = event.target.ancestor('.option-wrapper');
+            var form = A.one('.property-form');
+
+            event.halt();
+
+            var optionWrapper = A.Node.create('<div class="form-group option-wrapper"></div>');
+
+            var optionUp = A.Node.create('<button class="btn btn-default options-editor-button pull-left reorder up"><span class="glyphicon glyphicon-chevron-up"></span></button>');
+            var optionDown = A.Node.create('<button class="btn btn-default options-editor-button pull-left reorder down"><span class="glyphicon glyphicon-chevron-down"></span></button>');
+
+            var optionLabel = A.Node.create('<div class="col-xs-4"><input type="text" class="form-control option-input option-label" placeholder="Option Label"></div>');
+            var optionValue = A.Node.create('<div class="col-xs-4"><input type="text" class="form-control option-input option-value" placeholder="Option Value"></div>');
+
+            var addOptionButton = A.Node.create('<button class="btn btn-success options-editor-button add"><span class="glyphicon glyphicon-plus"></span></button>');
+            var deleteButton = A.Node.create('<button class="btn btn-danger options-editor-button delete"><span class="glyphicon glyphicon-remove"></span></button>');
+
+            optionWrapper.appendChild(optionUp);
+            optionWrapper.appendChild(optionDown);
+            optionWrapper.appendChild(optionLabel);
+            optionWrapper.appendChild(optionValue);
+            optionWrapper.appendChild(addOptionButton);
+            optionWrapper.appendChild(deleteButton);
+
+            group.placeAfter(optionWrapper);
+
+            optionWrapper.delegate('click', instance.reorderOptions, '.options-editor-button.reorder');
+
+            optionWrapper.delegate('click', instance.modalOptionsEditorDeleteOption, '.options-editor-button.delete');
+
+            optionWrapper.delegate('click', instance.modalOptionsEditorAddOption, '.options-editor-button.add');
+
+            optionWrapper.one('.option-input').focus();
+        },
+
+        modalOptionsEditorDeleteOption: function(event) {
+            var deleteTarget = event.target.ancestor('.option-wrapper');
+
+            event.halt();
+
+            if (deleteTarget.next() !== null) {
+                deleteTarget.next().one('.form-control').focus();
+            }
+            else if (deleteTarget.previous() !== null) {
+                deleteTarget.previous().one('.form-control').focus();
+            }
+
+            deleteTarget.remove(true);
+        },
+
+        modalTextInput: function(field, attributeName, editorName) {
+            var instance = this;
+            var content = A.Node.create('<div class="input-modal"></div>');
+            var propertyForm = A.Node.create('<form role="form" class="property-form"></form>');
+
+            if (editorName === 'textAreaCellEditor') {
+                var textInput = A.Node.create('<textarea class="form-control property-input"></textarea>');
+            }
+            else {
+                var textInput = A.Node.create('<input type="text" class="form-control property-input" id="propertyText" placeholder="Enter new property">');
+            }
+
+            propertyForm.appendChild(textInput);
+
+            content.appendChild(propertyForm);
+
+            var modalTextInput = new A.Modal(
+                {
+                    bodyContent: content,
+                    centered: true,
+                    destroyOnHide: true,
+                    render: '#newModal',
+                    zIndex: 1001
+                }
+            ).render();
+
+            A.one('.property-form').on('submit',
+                function(event) {
+                    event.halt();
+
+                    var value = A.one('#propertyText').get('value');
+
+                    modalTextInput.hide();
+
+                    instance.keyboardUpdateProperties(field, attributeName, value);
+                }
+            );
+
+            A.one('#propertyText').focus();
+        },
+
+        modalAvailableFields: function(targetNode, parent, addChild) {
+            var instance = this;
+            var uniqueField = false;
+
+            var currentFields = instance.get('fields')._items;
+
+            var verifyUnique = function(element) {
+                if (element.get('unique')) {
+                    uniqueField = true;
+                }
+            }
+
+            currentFields.forEach(verifyUnique);
+
+            var availableFields = instance.get('availableFields');
+
+            var content = A.Node.create('<div class="add-new-field-modal"></div>');
+
+            for (var i = 0; i < availableFields.length; i++) {
+                var label = availableFields[i].get('label');
+                var uniqueAvailableField = availableFields[i].get('unique');
+                var button = A.Node.create('<button class="btn btn-primary btn-block available-field-button modal-keyboard-button" value="' + i + '">(' + (i + 1) + ') ' + label + '</button>');
+
+                console.log('uniqueField: ', uniqueField);
+
+                console.log('uniqueAvailableField: ', uniqueAvailableField);
+
+                if (uniqueAvailableField && uniqueField) {
+                    button.addClass('disabled');
+                }
+                else {
+                    button.addClass('enabled');
+                }
+
+                content.appendChild(button);
+            }
+
+            var newFieldModal = new A.Modal(
+                {
+                    bodyContent: content,
+                    centered: true,
+                    destroyOnHide: true,
+                    render: '#newModal',
+                    zIndex: 1001
+                }
+            ).render();
+
+            A.all('.available-field-button.enabled').on('click',
+                function(event) {
+                    var index = event.target._node.value;
+
+                    newFieldModal.hide();
+
+                    instance.keyboardNewField(targetNode, parent, addChild, index);
+                }
+            );
+
+            A.one('.available-field-button.enabled').focus();
+        },
+
+        keyboardNewField: function(targetNode, parent, addChild, index) {
+            var instance = this;
+
+            var availableFields = instance.get('availableFields');
+            var availableField = availableFields[index];
+
+            if (!isNaN(index)) {
+                var config = {
+                    hiddenAttributes: availableField.get('hiddenAttributes'),
+                    label: availableField.get('label'),
+                    localizationMap: availableField.get('localizationMap'),
+                    options: availableField.get('options'),
+                    predefinedValue: availableField.get('predefinedValue'),
+                    readOnlyAttributes: availableField.get('readOnlyAttributes'),
+                    required: availableField.get('required'),
+                    showLabel: availableField.get('showLabel'),
+                    tip: availableField.get('tip'),
+                    type: availableField.get('type'),
+                    unique: availableField.get('unique'),
+                    width: availableField.get('width')
+                }
+
+                if (config.unique) {
+                    config.id = instance._getFieldId(availableField);
+                    config.name = availableField.get('name');
+                }
+
+                var i = instance._getFieldNodeIndex(targetNode) + 1;
+
+                var newField = instance.createField(config);
+
+                instance.insertField(newField, i, parent);
+
+                if (addChild) {
+                    targetNode.one('.form-builder-field').focus();
+                }
+                else if (targetNode.next()){
+                    targetNode.next().focus();
+                }
+                else {
+                    A.one('.form-builder-field').focus();
+                }
+            }
         },
 
         /**
@@ -687,6 +1173,20 @@ var FormBuilder = A.Component.create({
         },
 
         /**
+         * Triggers after removing selected fields from the `A.LinkedSet`
+         * instance.
+         *
+         * @method _afterSelectedFieldsSetRemove
+         * @param event
+         * @protected
+         */
+        _bindKeypress: function() {
+            var instance = this;
+
+            instance._keyHandler = A.one('doc').on('keydown', A.bind(instance._handleKeypressEvent, instance));
+        },
+
+        /**
          * Clones a field.
          *
          * @method _cloneField
@@ -796,6 +1296,388 @@ var FormBuilder = A.Component.create({
                 // calculation
                 '> *:not(' + '.' + CSS_FORM_BUILDER_PLACEHOLDER + ')'
             ).indexOf(fieldNode);
+        },
+
+        /**
+         * Gets the index from the field node.
+         *
+         * @method _getFieldNodeIndex
+         * @param fieldNode
+         * @protected
+         */
+        _handleKeypressEvent: function(event) {
+            var instance = this,
+                targetNode = event.target,
+                field = A.Widget.getByNode(targetNode),
+                ancestor,
+                buttonClass,
+                childField,
+                i,
+                parentField,
+                next = targetNode.next(),
+                previous = targetNode.previous(),
+                keyCode = event.keyCode,
+                keyCtrl = event.ctrlKey,
+                keyShift = event.shiftKey;
+
+
+            if (!targetNode.hasClass('form-control')) {
+                if(keyShift && keyCode === 191) {
+                    A.io.request(
+                        'help.html',
+                        {
+                            dataType: 'html',
+                            on: {
+                                success: function() {
+                                    var data = this.get('responseData');
+                                    var modal = new A.Modal(
+                                        {
+                                            bodyContent: data,
+                                            centered: true,
+                                            headerContent: 'Help',
+                                            render: '#modal',
+                                            zIndex: 1003
+                                        }
+                                    ).render();
+                                }
+                            }
+                        }
+                    );
+                }
+            }
+
+            if (targetNode.hasClass('form-builder-field-node')) {
+                ancestor = targetNode.ancestor('.form-builder-field');
+
+                if ((keyCode === keyEscape) || // Escape Key to exit editing
+                    (keyCode === keyEnter && !targetNode.hasClass('field-textarea')) || // Enter Key to insert newline in text area
+                    (targetNode.hasClass('field-textarea') && keyCode === keyEnter && keyCtrl === true)) { // CTRL-Enter to exit text area editing
+
+                    ancestor.focus(); // Returns focus to field
+
+                    event.halt();
+                }
+            }
+
+            else if (targetNode.hasClass('form-builder-field')) {
+                ancestor = targetNode.ancestor('.form-builder-field');
+                childField = targetNode.one('.form-builder-field');
+                // Lower Case "j" or CTRL-Down Arrow
+                if ((keyCode === keyLowerJ || (keyCtrl === true && keyCode === keyDownArrow )) && next !== null) {
+                    if (ancestor !== null) {
+                        parentField = A.Widget.getByNode(ancestor);
+                    }
+                    else {
+                        parentField = instance;
+                    }
+
+                    i = instance._getFieldNodeIndex(next);
+
+                    instance.insertField(field, i, parentField);
+
+                    targetNode.focus();
+
+                    event.halt();
+
+                }
+
+                // Lower Case "k" or CTRL-Up Arrow
+                else if ((keyCode === keyLowerK || (keyCtrl === true && keyCode === keyUpArrow)) && previous !== null) {
+                    if (ancestor !== null) {
+                        parentField = A.Widget.getByNode(ancestor);
+                    }
+                    else {
+                        parentField = instance;
+                    }
+
+                    i = instance._getFieldNodeIndex(previous);
+
+                    instance.insertField(field, i, parentField);
+
+                    targetNode.focus();
+
+                    event.halt();
+                }
+
+                // Right Arrow
+                else if (keyCode === keyRightArrow) {
+                    if (childField !== null) {
+                        childField.focus(); // Enters sub-fields of a field-set
+                    }
+                    else if (next !== null) {
+                        next.focus(); // Focuses next field
+                    }
+
+                    event.halt();
+                }
+
+                // Down Arrow
+                else if (keyCode === keyDownArrow && next !== null) {
+                    next.focus(); // Focuses next field
+
+                    event.halt();
+                }
+
+                // Left Arrow
+                else if (keyCode === keyLeftArrow) {
+                    if (ancestor !== null) {
+                        ancestor.focus(); // Selects Parent Field
+                    }
+
+                    else if (previous !== null) {
+                        previous.focus(); // Focuses previous field
+                    }
+
+                    event.halt();
+                }
+
+                // Up Arrow
+                else if (keyCode === keyUpArrow && previous !== null) {
+                    previous.focus(); // Focuses previous field
+
+                    event.halt();
+                }
+
+                // Enter Key
+                else if (keyCode === keyEnter) {
+                    if (targetNode.one('> .form-builder-field-content > .form-builder-field-wrapper > .form-builder-field-node') || targetNode.one('> .form-builder-field-content > .form-builder-field-node')) {
+                            targetNode.one('.form-builder-field-node').focus(); // Puts focus on the input field
+                    }
+                    else if (childField !== null) {
+                        childField.focus(); // Enters sub-fields of a field-set
+                    }
+
+                    event.halt();
+                }
+
+                // Escape Key
+                else if (keyCode === keyEscape && ancestor) {
+                    ancestor.focus(); // Selects Parent Field
+
+                    event.halt();
+                }
+
+                // Delete or Backspace Key
+                else if (keyCode === keyDelete || keyCode === keyBackspace) {
+                    var destroyField = field;
+
+                    var confirmDelete = confirm('Are you sure you want to delete the selected field?');
+
+                    if (confirmDelete) {
+                        destroyField.destroy(); // Deletes selected field
+                    }
+
+                    if (next !== null) {
+                        next.focus();
+                    }
+                    else if (previous !== null) {
+                        previous.focus();
+                    }
+
+                    else if (ancestor !== null) {
+                        ancestor.focus();
+                    }
+
+                    event.halt();
+                }
+
+                // Lower Case "d"
+                else if (keyCode === keyLowerD) {
+                    var unique = field.get('unique');
+
+                    if (!unique) {
+                        instance.duplicateField(field); // Duplicates selected field
+                    }
+                    else {
+                        alert('Field is unique');
+                    }
+
+                    targetNode.focus();
+
+                    event.halt();
+                }
+
+                // Lower Case "e"
+                else if (keyCode === keyLowerE) {
+                    instance.modalAvailableProperties(field);
+
+                    event.halt();
+                }
+
+                // Lower Case "n"
+                else if (keyCode === keyLowerN) {
+                    if (ancestor !== null) {
+                        parentField = A.Widget.getByNode(ancestor);
+                    }
+                    else {
+                        parentField = instance;
+                    }
+
+                    instance.modalAvailableFields(targetNode, parentField, false);
+
+                    event.halt();
+                }
+
+                // Lower Case "c"
+                else if (keyCode === keyLowerC) {
+                    parentField = field;
+
+                    if (field.get('acceptChildren')) {
+                        instance.modalAvailableFields(targetNode, parentField, true);
+                    }
+
+                    else {
+                        alert('This field does not accept children');
+                    }
+
+                    event.halt();
+                }
+            }
+
+            else if (targetNode.hasClass('modal-keyboard-button')) {
+                // Down Arrow
+                if (keyCode === keyDownArrow && next !== null) {
+
+                    next.radioClass('focused');
+                    next.focus(); // Focuses next field
+
+                    event.halt();
+                }
+
+                // Up Arrow
+                else if (keyCode === keyUpArrow && previous !== null) {
+                    previous.radioClass('focused');
+                    previous.focus(); // Focuses previous field
+
+                    event.halt();
+                }
+
+                else if (keyCode === keyEscape) {
+                    A.one('.form-builder-field-selected').focus();
+                }
+
+                else if (keyNumberKeys[keyCode] !== undefined) {
+                    var buttons = A.all('.modal-keyboard-button').get('nodes');
+                    var index = keyNumberKeys[keyCode] - 1;
+                    var button = buttons[index];
+
+                    if (button && button.hasClass('focused')) {
+                        button.simulate('click');
+                    }
+                    else if (button) {
+                        button.focus();
+                        button.radioClass('focused');
+                    }
+
+                    buttons = null;
+
+                    event.halt();
+                }
+            }
+
+            else if (targetNode.hasClass('options-editor-button')) {
+                var optionWrapper = targetNode.ancestor('.option-wrapper');
+
+
+                if (targetNode.hasClass('add')) {
+                    buttonClass = '.add';
+                }
+
+                if (targetNode.hasClass('delete')) {
+                    buttonClass = '.delete';
+                }
+
+                if (targetNode.hasClass('down')) {
+                    buttonClass = '.down';
+                }
+
+                if (targetNode.hasClass('up')) {
+                    buttonClass = '.up';
+                }
+
+
+                if (keyCode === keyRightArrow) {
+                    if (next !== null) {
+                        next.focus();
+                    }
+                }
+
+                if (keyCode === keyLeftArrow) {
+                    if (previous !== null) {
+                        previous.focus();
+                    }
+                }
+
+                if (keyCode === keyDownArrow) {
+                    if (optionWrapper.next() !== null) {
+                        optionWrapper.next().one(buttonClass).focus();
+                    }
+                    else {
+                        A.one('.options-editor-button.save').focus();
+                    }
+                }
+
+                if (keyCode === keyUpArrow) {
+                    if (optionWrapper.previous() !== null) {
+                        optionWrapper.previous().one(buttonClass).focus();
+                    }
+                }
+            }
+
+            else if (targetNode.hasClass('option-input')) {
+                ancestor = targetNode.ancestor('.option-wrapper');
+
+                if (targetNode.hasClass('option-label')) {
+                    buttonClass = '.option-label';
+                }
+
+                if (targetNode.hasClass('option-value')) {
+                    buttonClass = '.option-value';
+                }
+
+                if (keyCode === keyEnter) {
+                    if (targetNode.next() === null && ancestor.next() !== null) {
+                        ancestor.next().one(buttonClass).focus();
+                    }
+                    event.halt();
+                }
+
+                if (keyCode === keyDownArrow) {
+                    if (ancestor.next() !== null) {
+                        ancestor.next().one(buttonClass).focus();
+                    }
+                    else {
+                        A.one('.options-editor-button.save').focus();
+                    }
+                }
+
+                if (keyCode === keyUpArrow) {
+                    if (ancestor.previous() !== null) {
+                        ancestor.previous().one(buttonClass).focus();
+                    }
+                }
+            }
+
+            else if (!targetNode.hasClass('form-control')) {
+                if (keyCode === keyLowerF) {
+                    if (instance.lastFocusedField) {
+                        A.one('.form-builder-field-selected').focus();
+                    }
+                    else if (A.one('.form-builder-field')) {
+                        A.one('.form-builder-field').focus();
+                    }
+
+                    event.halt();
+                }
+
+                if (keyCode === keyLowerN) {
+                    target = A.one('.diagram-builder-drop-container');
+
+                    instance.modalAvailableFields(target, instance, false);
+
+                    event.halt();
+                }
+            }
         },
 
         /**
