@@ -298,7 +298,6 @@ BaseCellEditor = A.Component.create({
         bindUI: function() {
             var instance = this;
 
-            instance.get('boundingBox').on('key', A.bind(instance._onEnterKey, instance), 'down:13');
             instance.get('boundingBox').on('key', A.bind(instance._onEscKey, instance), 'down:27');
         },
 
@@ -574,23 +573,6 @@ BaseCellEditor = A.Component.create({
         /**
          * TODO. Wanna help? Please send a Pull Request.
          *
-         * @method _onEnterKey
-         * @param event
-         * @protected
-         */
-        _onEnterKey: function(event) {
-            var instance = this;
-
-            if (event.ctrlKey) {
-                instance._handleSaveEvent();
-
-                event.halt();
-            }
-        },
-
-        /**
-         * TODO. Wanna help? Please send a Pull Request.
-         *
          * @method _onEscKey
          * @param event
          * @protected
@@ -629,7 +611,7 @@ BaseCellEditor = A.Component.create({
             var instance = this;
             var strings = instance.getStrings();
 
-            return A.merge({
+            var config = {
                 activeState: false,
                 children: [
                     [
@@ -647,8 +629,11 @@ BaseCellEditor = A.Component.create({
                             label: strings.cancel
                         }
                     ]
-                ]
-            }, val);
+                ],
+                initializeAll: true
+            }
+
+            return A.merge(config, val);
         },
 
         /**

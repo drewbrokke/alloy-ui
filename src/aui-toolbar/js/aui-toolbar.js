@@ -63,6 +63,18 @@ A.Toolbar = A.Component.create({
         },
 
         /**
+         * TODO. Wanna help? Please send a Pull Request.
+         *
+         * @attribute initializeAll
+         * @default false
+         * @type Object
+         */
+        initializeAll: {
+            validator: isBoolean,
+            value: false
+        },
+
+        /**
          * Define a new `ToolbarRenderer`.
          *
          * @attribute toolbarRenderer
@@ -146,9 +158,18 @@ A.Toolbar = A.Component.create({
         add: function(children, where) {
             var instance = this,
                 boundingBox = instance.get('boundingBox'),
-                toolbarRenderer = instance.get('toolbarRenderer');
+                toolbarRenderer = instance.get('toolbarRenderer'),
+                initializeAll = instance.get('initializeAll');
 
             boundingBox.insert(toolbarRenderer.render(A.Array(children)), where);
+
+            if (initializeAll) {
+                var buttons = boundingBox.all('button').get('nodes');
+
+                for (var i = 0; i < buttons.length; i++) {
+                    instance._initEnclosingWidgetIfNeeded(buttons[i]);
+                }
+            }
         },
 
         /**
