@@ -6,6 +6,7 @@
 
 var Lang = A.Lang,
     isArray = Lang.isArray,
+    isBoolean = Lang.isBoolean,
     isString = Lang.isString,
     isFunction = Lang.isFunction,
 
