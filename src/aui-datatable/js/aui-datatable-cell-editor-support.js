@@ -192,10 +192,13 @@ A.mix(CellEditorSupport.prototype, {
      * @protected
      */
     _onEditorVisibleChange: function(event) {
-        var editor = event.currentTarget;
+        var instance = this,
+            editor = event.currentTarget;
 
         if (event.newVal) {
             editor._syncFocus();
+
+            instance.blur();
         }
     },
 
