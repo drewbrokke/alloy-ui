@@ -64,7 +64,8 @@ A.Toolbar = A.Component.create({
         },
 
         /**
-         * TODO. Wanna help? Please send a Pull Request.
+         * Immediately initialize all buttons instead of waiting for user
+         * interaction. Used to make buttons instantly tab-accessible.
          *
          * @attribute initializeAll
          * @default false

@@ -207,7 +207,8 @@ DateCellEditor = A.Component.create({
         },
 
         /**
-         * TODO. Wanna help? Please send a Pull Request.
+         * Places keyboard focus on the first selected date, if any. Otherwise,
+         * places focus on the default date.
          *
          * @method _syncElementsFocus
          * @protected

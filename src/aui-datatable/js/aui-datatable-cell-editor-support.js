@@ -148,7 +148,10 @@ A.mix(CellEditorSupport.prototype, {
     },
 
     /**
-     * TODO. Wanna help? Please send a Pull Request.
+     * Invoked when the editor fires the 'cancel' event.
+     *
+     * Fires the '_refocusActiveCell' method, which returns keyboard focus to
+     * the last active cell.
      *
      * @method _onEditorCancel
      * @protected
@@ -160,7 +163,7 @@ A.mix(CellEditorSupport.prototype, {
     },
 
     /**
-     * TODO. Wanna help? Please send a Pull Request.
+     * Invoked when the editor fires the 'save' event.
      *
      * @method _onEditorSave
      * @param event
@@ -203,7 +206,7 @@ A.mix(CellEditorSupport.prototype, {
     },
 
     /**
-     * TODO. Wanna help? Please send a Pull Request.
+     * Places keyboard focus onto the last active cell
      *
      * @method _refocusActiveCell
      * @protected
