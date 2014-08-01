@@ -179,11 +179,6 @@ A.mix(CellEditorSupport.prototype, {
 
         record.set(column.key, event.newVal);
 
-        // TODO: Sync highlight frames UI instead?
-        if (instance.highlight) {
-            instance.highlight.clear();
-        }
-
         instance._refocusActiveCell();
     },
 
