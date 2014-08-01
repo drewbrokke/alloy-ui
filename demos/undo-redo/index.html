@@ -51,7 +51,13 @@
     YUI({filter: 'raw'}).use('aui-undo-redo', 'dd-drag', 'dd-constrain', function(Y) {
         var box = Y.one('#redbox'),
             dd = new Y.DD.Drag({node: '#redbox'}),
-            undoRedo = new Y.UndoRedo(),
+            undoRedo = new Y.UndoRedo(
+                {
+                    shortcutConfig: {
+                        bindShortcutsTo: 'body'
+                    }
+                }
+            ),
             previousXY = box.getXY(),
             async = false;
 

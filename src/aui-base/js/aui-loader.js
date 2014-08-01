@@ -1319,6 +1319,7 @@ Y.mix(YUI.Env[Y.version].modules, {
         "requires": [
             "base",
             "base-build",
+            "event-key",
             "promise"
         ]
     },
@@ -1399,4 +1400,4 @@ Y.mix(YUI.Env[Y.version].modules, {
         ]
     }
 });
-YUI.Env[Y.version].md5 = '1d9b51f674b35ebcaadf149c02b0afec';
+YUI.Env[Y.version].md5 = 'a13acc711d72f9d90460deb31694d301';
