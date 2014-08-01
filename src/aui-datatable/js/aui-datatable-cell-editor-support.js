@@ -217,6 +217,7 @@ A.mix(CellEditorSupport.prototype, {
             coords = instance.getCoord(activeCell);
 
         instance.set('activeCoord', coords);
+        instance.set('selection', coords);
     },
 
     /**
