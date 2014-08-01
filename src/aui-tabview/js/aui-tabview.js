@@ -72,10 +72,54 @@ A.Tab = A.Component.create({
         /**
          * TODO. Wanna help? Please send a Pull Request.
          *
+         * @attribute controls
+         * @type Boolean
+         */
+        controls: {
+            validator: Lang.isString,
+            valueFn: '_valueControls'
+        },
+
+        /**
+         * TODO. Wanna help? Please send a Pull Request.
+         *
          * @attribute disabled
          * @type Boolean
          */
         disabled: {
+            validator: isBoolean,
+            valueFn: '_valueDisabled'
+        },
+
+        /**
+         * TODO. Wanna help? Please send a Pull Request.
+         *
+         * @attribute expanded
+         * @type Boolean
+         */
+        expanded: {
+            validator: Lang.isString,
+            valueFn: '_valueExpanded'
+        },
+
+        /**
+         * TODO. Wanna help? Please send a Pull Request.
+         *
+         * @attribute label
+         * @type Boolean
+         */
+        label: {
+            validator: Lang.isString,
+            value: ''
+        },
+
+        /**
+         * TODO. Wanna help? Please send a Pull Request.
+         *
+         * @attribute roleName
+         * @type Boolean
+         */
+        roleName: {
             validator: isBoolean,
             valueFn: '_valueDisabled'
         }
@@ -113,8 +157,6 @@ A.Tab = A.Component.create({
             instance.on('selectedChange', instance._onTabSelectedChange);
 
             A.after(instance._afterUiSetDisabled, instance, '_uiSetDisabled');
-
-            instance._initAria();
         },
 
         /**
@@ -161,6 +203,17 @@ A.Tab = A.Component.create({
                 panelNodeId = panelNode.getAttribute('id'),
                 expanded = instance.get('boundingBox').hasClass(A.TabviewBase._classNames.selectedTab);
 
+            instance.plug(A.Plugin.Aria, {
+                attributeNode: contentBox,
+                attributes: {
+                    controls: 'controls',
+                    expanded: 'expanded',
+                    label: 'label'
+                },
+                roleName: instance.get('roleName'),
+                roleNode: contentBox
+            });
+
             contentBox.setAttrs({
                 'aria-controls': panelNodeId ? panelNodeId : A.stamp(panelNode),
                 'aria-expanded': expanded,
@@ -203,6 +256,24 @@ A.Tab = A.Component.create({
             if (!tabviewPanelNode.contains(tabPanelNode)) {
                 tabviewPanelNode.appendChild(tabPanelNode);
             }
+        },
+
+        /**
+         * Determines the value of the disabled attribute
+         *
+         * @method _valueControls
+         * @protected
+         * @return {Boolean}
+         */
+        _valueControls: function() {
+            var instance = this,
+                panelNode = instance.get('panelNode'),
+                panelNodeId = panelNode.getAttribute('id');
+
+            var controls = panelNodeId ? panelNodeId : A.stamp(panelNode);
+            console.log('controls: ', controls);
+
+            return controls;
         },
 
         /**
@@ -518,7 +589,7 @@ A.TabView = A.Component.create({
                 panelNode.setAttrs({
                     'tabIndex': tabindex,
                     'aria-hidden': !!tabindex
-                })
+                });
             });
         },
 
