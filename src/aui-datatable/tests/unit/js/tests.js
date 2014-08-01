@@ -449,36 +449,32 @@ YUI.add('aui-datatable-tests', function(Y) {
 
             //simulate right arrow key press
 
-            boundingBox.simulate('keydown', {
-                keyCode: 39
-            });
+            this.simulateKey(boundingBox, 39);
+
             activeCoords = dataTable.get('activeCoord');
 
             Y.ArrayAssert.itemsAreSame(cellCoords.topRight, activeCoords, 'Right arrow should have moved selection.');
 
             //simulate down arrow key press
 
-            boundingBox.simulate('keydown', {
-                keyCode: 40
-            });
+            this.simulateKey(boundingBox, 40);
+
             activeCoords = dataTable.get('activeCoord');
 
             Y.ArrayAssert.itemsAreSame(cellCoords.bottomRight, activeCoords, 'Down arrow should have moved selection.');
 
             //simulate left arrow key press
 
-            boundingBox.simulate('keydown', {
-                keyCode: 37
-            });
+            this.simulateKey(boundingBox, 37);
+
             activeCoords = dataTable.get('activeCoord');
 
             Y.ArrayAssert.itemsAreSame(cellCoords.bottomLeft, activeCoords, 'Left arrow should have moved selection.');
 
             //simulate up arrow key press
 
-            boundingBox.simulate('keydown', {
-                keyCode: 38
-            });
+            this.simulateKey(boundingBox, 38);
+
             activeCoords = dataTable.get('activeCoord');
 
             Y.ArrayAssert.itemsAreSame(cellCoords.topLeft, activeCoords, 'Up arrow should have moved selection.');
