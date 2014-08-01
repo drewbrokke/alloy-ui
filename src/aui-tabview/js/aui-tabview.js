@@ -72,10 +72,54 @@ A.Tab = A.Component.create({
         /**
          * TODO. Wanna help? Please send a Pull Request.
          *
+         * @attribute controls
+         * @type Boolean
+         */
+        controls: {
+            validator: Lang.isString,
+            valueFn: '_valueControls'
+        },
+
+        /**
+         * TODO. Wanna help? Please send a Pull Request.
+         *
          * @attribute disabled
          * @type Boolean
          */
         disabled: {
+            validator: isBoolean,
+            valueFn: '_valueDisabled'
+        },
+
+        /**
+         * TODO. Wanna help? Please send a Pull Request.
+         *
+         * @attribute expanded
+         * @type Boolean
+         */
+        expanded: {
+            validator: Lang.isString,
+            valueFn: '_valueExpanded'
+        },
+
+        /**
+         * TODO. Wanna help? Please send a Pull Request.
+         *
+         * @attribute label
+         * @type Boolean
+         */
+        label: {
+            validator: Lang.isString,
+            value: ''
+        },
+
+        /**
+         * TODO. Wanna help? Please send a Pull Request.
+         *
+         * @attribute roleName
+         * @type Boolean
+         */
+        roleName: {
             validator: isBoolean,
             valueFn: '_valueDisabled'
         }
@@ -116,6 +160,21 @@ A.Tab = A.Component.create({
         },
 
         /**
+         * Update 'aria-expanded' attribute on tab.
+         *
+         * @method _setAriaExpanded
+         * @param tab
+         * @protected
+         */
+        updateAriaExpanded: function() {
+            var instance = this,
+                expanded = instance.get('boundingBox').hasClass(A.TabviewBase._classNames.selectedTab),
+                contentBox = instance.get('contentBox');
+
+            contentBox.set('aria-expanded', expanded);
+        },
+
+        /**
          * Fire after `disabled` class been set on the UI.
          *
          * @method _afterUiSetDisabled
@@ -126,6 +185,43 @@ A.Tab = A.Component.create({
             var instance = this;
 
             instance.get('boundingBox').toggleClass(getClassName('disabled'), val);
+        },
+
+
+        /**
+         * Set Aria attributes on a Tab.
+         *
+         * @method _setAriaElements
+         * @param tab
+         * @protected
+         */
+        _initAria: function() {
+            var instance = this,
+                contentBox = instance.get('contentBox'),
+                boundingBox = instance.get('boundingBox'),
+                panelNode = instance.get('panelNode'),
+                panelNodeId = panelNode.getAttribute('id'),
+                expanded = instance.get('boundingBox').hasClass(A.TabviewBase._classNames.selectedTab);
+
+            instance.plug(A.Plugin.Aria, {
+                attributeNode: contentBox,
+                attributes: {
+                    controls: 'controls',
+                    expanded: 'expanded',
+                    label: 'label'
+                },
+                roleName: instance.get('roleName'),
+                roleNode: contentBox
+            });
+
+            contentBox.setAttrs({
+                'aria-controls': panelNodeId ? panelNodeId : A.stamp(panelNode),
+                'aria-expanded': expanded,
+                'aria-label': instance.get('label'),
+                'role': 'tab'
+            });
+
+            boundingBox.set('role', 'presentation');
         },
 
         /**
@@ -160,6 +256,24 @@ A.Tab = A.Component.create({
             if (!tabviewPanelNode.contains(tabPanelNode)) {
                 tabviewPanelNode.appendChild(tabPanelNode);
             }
+        },
+
+        /**
+         * Determines the value of the disabled attribute
+         *
+         * @method _valueControls
+         * @protected
+         * @return {Boolean}
+         */
+        _valueControls: function() {
+            var instance = this,
+                panelNode = instance.get('panelNode'),
+                panelNodeId = panelNode.getAttribute('id');
+
+            var controls = panelNodeId ? panelNodeId : A.stamp(panelNode);
+            console.log('controls: ', controls);
+
+            return controls;
         },
 
         /**
@@ -298,6 +412,41 @@ A.TabView = A.Component.create({
 
             instance.after(instance._afterSyncUI, instance, 'syncUI');
             instance.after('typeChange', instance._afterTypeChange);
+            instance.get('contentBox').on('key', A.bind(instance._onArrowKey, instance), 'down:37,39');
+        },
+
+        /**
+         * Fire on arrow key press when on tab.
+         *
+         * @method _onArrowKey
+         * @param event
+         * @protected
+         */
+        _onArrowKey: function(event) {
+            var instance = this,
+                keyCode = event.keyCode,
+                target = event.target,
+                index = target.getData('tabviewIndex');
+
+            if (target.hasClass(A.TabviewBase._classNames.tab) ||
+                target.hasClass(A.TabviewBase._classNames.tabLabel)) {
+                if (keyCode == 37) {
+                    index = index - 1;
+
+                    if (index < 0 ){
+                        index = instance._items.length - 1;
+                    }
+                }
+                else if (keyCode == 39) {
+                    index = index + 1;
+
+                    if (index > instance._items.length - 1) {
+                        index = 0;
+                    }
+                }
+
+                instance.selectChild(index);
+            }
         },
 
         /**
@@ -356,19 +505,38 @@ A.TabView = A.Component.create({
          * @protected
          */
         _afterSelectionChange: function(event) {
-            var newVal = event.newVal,
+            var instance = this,
+                newVal = event.newVal,
                 prevVal = event.prevVal,
                 selectedTabClassName = A.TabviewBase._classNames.selectedTab;
 
             A.TabView.superclass._afterSelectionChange.apply(this, arguments);
 
             if (newVal) {
+                var newPanel = newVal.get('panelNode');
+
                 newVal.get('boundingBox').addClass(selectedTabClassName);
-                newVal.get('panelNode').addClass(selectedTabClassName);
+                newPanel.addClass(selectedTabClassName);
+
+                newPanel.setAttrs({
+                    'tabIndex': 0,
+                    'aria-hidden': false
+                });
+
+                newVal.updateAriaExpanded();
             }
             if (prevVal) {
+                var prevPanel = prevVal.get('panelNode');
+
                 prevVal.get('boundingBox').removeClass(selectedTabClassName);
-                prevVal.get('panelNode').removeClass(selectedTabClassName);
+                prevPanel.removeClass(selectedTabClassName);
+
+                prevPanel.setAttrs({
+                    'tabIndex': -1,
+                    'aria-hidden': true
+                });
+
+                prevVal.updateAriaExpanded();
             }
         },
 
@@ -402,10 +570,26 @@ A.TabView = A.Component.create({
             instance._childrenContainer = renderTo;
 
             instance.each(function(child) {
+                var tabindex = -1,
+                    contentBox = child.get('contentBox'),
+                    panelNode = child.get('panelNode');
+
+                if (child.get('selected')) {
+                    tabindex = 0;
+                }
+
                 if (child.get('boundingBox').inDoc()) {
                     renderTo = null;
                 }
                 child.render(renderTo);
+
+                contentBox.setAttribute('tabIndex', tabindex);
+                contentBox.setData('tabviewIndex', child.get('index'));
+
+                panelNode.setAttrs({
+                    'tabIndex': tabindex,
+                    'aria-hidden': !!tabindex
+                });
             });
         },
 
