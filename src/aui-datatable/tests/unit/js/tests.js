@@ -590,6 +590,7 @@ YUI.add('aui-datatable-tests', function(Y) {
             this._simulateKey(boundingBox, 13, true);
 
             var editorNode = Y.one('.basecelleditor'),
+                editor = Y.Widget.getByNode(editorNode),
                 cancelBtn = editorNode.all('button').item(1);
 
             cancelBtn.focus().simulate('click');
@@ -600,7 +601,10 @@ YUI.add('aui-datatable-tests', function(Y) {
 
             coords = dataTable.get('activeCoord');
 
+            var visible = editor.get('visible');
+
             Y.ArrayAssert.itemsAreSame(testCoords, coords);
+            Y.Assert.isFalse(visible, 'editor should be hidden');
         },
 
         'cell focus after save': function() {
@@ -615,7 +619,10 @@ YUI.add('aui-datatable-tests', function(Y) {
             this._simulateKey(boundingBox, 13, true);
 
             var editorNode = Y.one('.basecelleditor'),
+                editor = Y.Widget.getByNode(editorNode),
                 saveBtn = editorNode.all('button').item(0);
+
+            saveBtn.focus().simulate('click');
 
             //simulate press down key to change active cell after SAVE
 
@@ -623,9 +630,10 @@ YUI.add('aui-datatable-tests', function(Y) {
 
             coords = dataTable.get('activeCoord');
 
-            Y.ArrayAssert.itemsAreSame(testCoords, coords);
+            var visible = editor.get('visible');
 
-            saveBtn.focus().simulate('click');
+            Y.ArrayAssert.itemsAreSame(testCoords, coords);
+            Y.Assert.isFalse(visible, 'editor should be hidden');
         },
 
         'calendar editor gains focus after invoke': function() {
