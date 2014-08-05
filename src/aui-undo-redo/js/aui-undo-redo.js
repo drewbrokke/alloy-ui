@@ -94,6 +94,8 @@ A.UndoRedo = A.Base.create('undo-redo', A.Base, [], {
         });
 
         this.after('maxUndoDepthChange', this._removeStatesBeyondMaxDepth);
+
+        this.bindShortcuts();
     },
 
     /**
@@ -127,6 +129,24 @@ A.UndoRedo = A.Base.create('undo-redo', A.Base, [], {
         this._states.push(state);
         this._currentStateIndex++;
         this._removeStatesBeyondMaxDepth();
+    },
+
+    /**
+     * Binds keyboard shortcuts to a given DOM node
+     *
+     * @method bindShortcuts
+     * @param {String | Node} node to bind shortcuts to.
+     */
+    bindShortcuts: function(config) {
+        if (!config) {
+            config = this.get('shortcutConfig');
+        }
+
+        if (config.bindShortcutsTo) {
+            A.one(config.bindShortcutsTo).on('key', this._handleKeypress,
+                config.type + ':' + config.undoKeyCode + ',' +
+                config.redoKeyCode + '+' + config.modifier, this);
+        }
     },
 
     /**
@@ -270,6 +290,25 @@ A.UndoRedo = A.Base.create('undo-redo', A.Base, [], {
     },
 
     /**
+     * Receives keyboard input.
+     *
+     * @method _handleKeypress
+     * @param {event} event
+     * @protected
+     */
+    _handleKeypress: function(event) {
+        var keyCode = event.keyCode,
+            config = this.get('shortcutConfig');
+
+        if (keyCode === config.undoKeyCode) {
+            this.undo();
+        }
+        else if (keyCode === config.redoKeyCode) {
+            this.redo();
+        }
+    },
+
+    /**
      * Constructs the event's name based on its prefix and the action type
      * related to it.
      *
@@ -374,6 +413,43 @@ A.UndoRedo = A.Base.create('undo-redo', A.Base, [], {
     }
 }, {
     ATTRS: {
+
+        /**
+         * Configuration object for keyboard shortcuts
+         *
+         * @attribute shortcutConfig
+         * @default {
+         *      bindShortcutsTo: null
+         *      modifier: 'ctrl',
+         *      redoKeyCode: 89,
+         *      type: 'down',
+         *      undoKeyCode: 90
+         * }
+         * @type {Object}
+         */
+        shortcutConfig: {
+            setter: function(val) {
+                val = A.merge({
+                        bindShortcutsTo: null,
+                        modifier: 'ctrl',
+                        redoKeyCode: 89,
+                        type: 'down',
+                        undoKeyCode: 90
+                    },
+                    val || {}
+                );
+
+                if (val.bindShortcutsTo) {
+                    val.bindShortcutsTo = A.Node(val.bindShortcutsTo);
+                    val.redoKeyCode = parseInt(val.redoKeyCode);
+                    val.undoKeyCode = parseInt(val.undoKeyCode);
+                }
+
+                return val;
+            },
+            validator: A.Lang.isObject
+        },
+
         /**
          * Limits the states stack size. Useful for memory optimization.
          *
