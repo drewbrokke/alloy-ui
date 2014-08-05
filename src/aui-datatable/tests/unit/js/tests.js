@@ -420,16 +420,16 @@ YUI.add('aui-datatable-tests', function(Y) {
                     }
                 ]
             }).render();
+        },
 
-            this.simulateKey = function(node, code, focusNode) {
-                if (focusNode) {
-                    node.focus();
-                }
-
-                node.simulate('keydown', {
-                    keyCode: code
-                })
+        _simulateKey: function(node, keyCode, focusNode) {
+            if (focusNode) {
+                node.focus();
             }
+
+            node.simulate('keydown', {
+                keyCode: keyCode
+            });
         },
 
         'navigate on arrow keys': function() {
@@ -449,7 +449,7 @@ YUI.add('aui-datatable-tests', function(Y) {
 
             //simulate right arrow key press
 
-            this.simulateKey(boundingBox, 39);
+            this._simulateKey(boundingBox, 39);
 
             activeCoords = dataTable.get('activeCoord');
 
@@ -457,7 +457,7 @@ YUI.add('aui-datatable-tests', function(Y) {
 
             //simulate down arrow key press
 
-            this.simulateKey(boundingBox, 40);
+            this._simulateKey(boundingBox, 40);
 
             activeCoords = dataTable.get('activeCoord');
 
@@ -465,7 +465,7 @@ YUI.add('aui-datatable-tests', function(Y) {
 
             //simulate left arrow key press
 
-            this.simulateKey(boundingBox, 37);
+            this._simulateKey(boundingBox, 37);
 
             activeCoords = dataTable.get('activeCoord');
 
@@ -473,7 +473,7 @@ YUI.add('aui-datatable-tests', function(Y) {
 
             //simulate up arrow key press
 
-            this.simulateKey(boundingBox, 38);
+            this._simulateKey(boundingBox, 38);
 
             activeCoords = dataTable.get('activeCoord');
 
@@ -487,7 +487,7 @@ YUI.add('aui-datatable-tests', function(Y) {
 
             //simulate enter key press
 
-            this.simulateKey(boundingBox, 13, true);
+            this._simulateKey(boundingBox, 13, true);
 
             var editorNode = Y.one('.basecelleditor');
 
@@ -535,7 +535,7 @@ YUI.add('aui-datatable-tests', function(Y) {
 
             //simulate escape key press
 
-            this.simulateKey(editorNode, 27);
+            this._simulateKey(editorNode, 27);
 
             visible = editor.get('visible');
 
@@ -573,7 +573,7 @@ YUI.add('aui-datatable-tests', function(Y) {
                 testCoordA = [1, 0],
                 testCoordB = [2, 0];
 
-            this.simulateKey(boundingBox, 13, true);
+            this._simulateKey(boundingBox, 13, true);
 
             var editorNode = Y.one('.basecelleditor'),
                 saveBtn = editorNode.all('button').item(0),
@@ -583,19 +583,19 @@ YUI.add('aui-datatable-tests', function(Y) {
 
             //simulate press down key to change active cell after CANCEL
 
-            this.simulateKey(boundingBox, 40);
+            this._simulateKey(boundingBox, 40);
 
             coordA = dataTable.get('activeCoord');
 
             Y.ArrayAssert.itemsAreSame(testCoordA, coordA);
 
-            this.simulateKey(boundingBox, 13, true);
+            this._simulateKey(boundingBox, 13, true);
 
             saveBtn.focus().simulate('click');
 
             //simulate press down key to change active cell after SAVE
 
-            this.simulateKey(boundingBox, 40);
+            this._simulateKey(boundingBox, 40);
 
             coordB = dataTable.get('activeCoord');
 
@@ -613,7 +613,7 @@ YUI.add('aui-datatable-tests', function(Y) {
             dataTable.set('activeCoord', coords);
             dataTable.set('selection', coords);
 
-            this.simulateKey(boundingBox, 13);
+            this._simulateKey(boundingBox, 13);
 
             var dateEditorNode = Y.one('.datecelleditor');
 
@@ -629,9 +629,9 @@ YUI.add('aui-datatable-tests', function(Y) {
                     //simulate changing selected date with the keyboard
                     //simulate press down, enter, down
 
-                    this.simulateKey(node, 13);
-                    this.simulateKey(node, 40);
-                    this.simulateKey(node, 13);
+                    this._simulateKey(node, 13);
+                    this._simulateKey(node, 40);
+                    this._simulateKey(node, 13);
 
                     date = calendar.get('selectedDates')[0];
 
