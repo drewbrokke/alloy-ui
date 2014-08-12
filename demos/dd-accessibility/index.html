@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AlloyUI - Drag &amp; Drop accessibility</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../../build/aui-css/css/bootstrap.css">
+    <script src="../../build/aui/aui.js"></script>
+    <style>
+    .almostpurple {
+        background: rgb(211, 68, 211);
+    }
+    .violet {
+        background: violet;
+    }
+    .purple {
+        background: purple;
+    }
+    .layout {
+        border: 1px solid;
+        width: 100%;
+    }
+    .layout .column {
+        border: 1px solid;
+        padding: 5px;
+    }
+    .helper {
+        background: black;
+        opacity: .5;
+    }
+    .section {
+        margin: 5px;
+    }
+    .helper-hidden {
+        display: none;
+    }
+
+    #demo .row {
+        margin-bottom: 2em;
+    }
+
+    #demo pre {
+        margin-top: 1em;
+    }
+    </style>
+</head>
+<body>
+    <h1>AlloyUI - Drag &amp; Drop accessibility</h1>
+
+<p class="lead">Using aui-accessible-dd</p>
+<pre>
+YUI({ filter:'raw' }).use('aui-accessible-dd', function(Y) {
+    // ...
+});
+</pre>
+
+    <div id="demo" class="container">
+        <div class="row">
+            <div class="col-md-12">
+
+                <!-- SortableLayout -->
+
+                <h2>SortableLayout</h2>
+
+                <table class="layout">
+                    <tr>
+                        <td class="column">
+                            <div class="section almostpurple">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Vero deserunt illo rem est unde ratione atque laudantium quasi ullam harum rerum quas ad quos exercitationem aliquid asperiores mollitia assumenda maxime.
+                            </div>
+                            <div class="section purple">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quae dolorem neque eius deleniti non aspernatur optio quidem autem aliquid perspiciatis expedita ab porro doloremque sint alias repellat eum odio quaerat.
+                            </div>
+                        </td>
+                        <td class="column">
+                            <div class="section purple">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quae dolorem neque eius deleniti non aspernatur optio quidem autem aliquid perspiciatis expedita ab porro doloremque sint alias repellat eum odio quaerat.
+                            </div>
+                            <div class="section almostpurple">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Vero deserunt illo rem est unde ratione atque laudantium quasi ullam harum rerum quas ad quos exercitationem aliquid asperiores mollitia assumenda maxime.
+                            </div>
+                        </td>
+                        <td class="column">
+                            <div class="section violet">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eum impedit fugiat quae quidem non autem commodi enim doloremque rem nostrum quasi est blanditiis explicabo. Dolore dolorem culpa distinctio nam voluptatibus!
+                            </div>
+                            <div class="section purple">
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quae dolorem neque eius deleniti non aspernatur optio quidem autem aliquid perspiciatis expedita ab porro doloremque sint alias repellat eum odio quaerat.
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <script>
+                YUI({ filter:'raw' }).use('aui-sortable-layout', 'aui-accessible-dd', 'aui-accessible-dd-delegate', function(Y) {
+
+                    new Y.SortableLayout({
+                        dragNodes: '.section',
+                        dropNodes: '.column',
+                        lazyStart: true,
+                        // placeholder: '<div class="placeholder"></div>',
+                        proxyNode: Y.Node.create('<div class="helper"></div>'),
+                        on: {
+                            placeholderAlign: function(event) {},
+                            quadrantOver: function(event) {},
+                            quadrantEnter: function(event) {},
+                            quadrantExit: function(event) {}
+                        }
+                    });
+
+                });
+                </script>
+<pre>
+YUI({ filter:'raw' }).use('aui-sortable-layout', 'aui-accessible-dd', function(Y) {
+
+    new Y.SortableLayout({
+        dragNodes: '.section',
+        dropNodes: '.column',
+        lazyStart: true,
+        // placeholder: '&lt;div class="placeholder"&gt;&lt;/div&gt;',
+        proxyNode: Y.Node.create('&lt;div class="helper"&gt;&lt;/div&gt;'),
+        on: {
+            placeholderAlign: function(event) {},
+            quadrantOver: function(event) {},
+            quadrantEnter: function(event) {},
+            quadrantExit: function(event) {}
+        }
+    });
+
+    });
+</pre>
+            </div>
+        </div>
+
+        <!-- Tree -->
+
+        <div class="row">
+            <div class="col-md-12">
+                <h2>TreeView file with drag and drop</h2>
+                <div class="container pull-left">
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-4">
+                            <div id="treefile"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                YUI({ filter: 'raw' }).use('aui-tree', 'aui-accessible-dd', function(Y) {
+
+                    new Y.TreeViewDD({
+                        boundingBox: '#treefile',
+                        children: [
+                            {
+                                label: 'Fruits',
+                                expanded: true,
+                                children: [
+                                    { label: 'Apricot' },
+                                    { label: 'Pineapple' },
+                                    { label: 'Kiwi' },
+                                    { label: 'Orange' },
+                                    { label: 'Pomegranate' },
+                                    { label: 'Lime' },
+                                ]
+                            },
+                            {
+                                label: 'More fruits',
+                                expanded: true,
+                                children: [
+                                    { label: 'Watermelon' },
+                                    { label: 'Apricot' },
+                                    { label: 'Pineapple' },
+                                    { label: 'Kiwi' },
+                                    { label: 'Orange' },
+                                    { label: 'Pomegranate' }
+                                ]
+                            },
+                            {
+                                label: 'Checkboxes',
+                                expanded: true,
+                                children: [
+                                    { label: 'Watermelon', type: 'check', leaf: true },
+                                    { label: 'Apricot', type: 'check', leaf: true },
+                                    { label: 'Pineapple', type: 'check', leaf: true },
+                                    { label: 'Kiwi', type: 'check', leaf: true },
+                                    { label: 'Orange', type: 'check', leaf: true },
+                                    { label: 'Pomegranate', type: 'check', leaf: true }
+                                ]
+                            },
+                            {
+                                label: 'Radio',
+                                expanded: true,
+                                children: [
+                                    { label: 'Watermelon', type: 'radio', leaf: true },
+                                    { label: 'Apricot', type: 'radio', leaf: true },
+                                    { label: 'Pineapple', type: 'radio', leaf: true },
+                                    { label: 'Kiwi', type: 'radio', leaf: true },
+                                    { label: 'Orange', type: 'radio', leaf: true },
+                                    { label: 'Pomegranate', type: 'radio', leaf: true }
+                                ]
+                            },
+                            {
+                                label: 'Task',
+                                type: 'task',
+                                expanded: true,
+                                children: [
+                                    { label: 'Watermelon', type: 'task', leaf: true },
+                                    { label: 'Apricot', type: 'task', leaf: true },
+                                    { label: 'Pineapple', type: 'task', leaf: true },
+                                    { label: 'Kiwi', type: 'task', leaf: true },
+                                    { label: 'Orange', type: 'task', leaf: true },
+                                    { label: 'Pomegranate', type: 'task', leaf: true }
+                                ]
+                            }
+                        ]
+                    }).render();
+                });
+                </script>
+
+<pre>
+YUI({ filter: 'raw' }).use('aui-tree', 'aui-accessible-dd', function(Y) {
+
+    new Y.TreeViewDD({
+        boundingBox: '#treefile',
+        children: [
+            {
+                label: 'Fruits',
+                expanded: true,
+                children: [
+                    { label: 'Apricot' },
+                    { label: 'Pineapple' },
+                    { label: 'Kiwi' },
+                    { label: 'Orange' },
+                    { label: 'Pomegranate' },
+                    { label: 'Lime' },
+                ]
+            },
+            {
+                label: 'More fruits',
+                expanded: true,
+                children: [
+                    { label: 'Watermelon' },
+                    { label: 'Apricot' },
+                    { label: 'Pineapple' },
+                    { label: 'Kiwi' },
+                    { label: 'Orange' },
+                    { label: 'Pomegranate' }
+                ]
+            },
+            {
+                label: 'Checkboxes',
+                expanded: true,
+                children: [
+                    { label: 'Watermelon', type: 'check', leaf: true },
+                    { label: 'Apricot', type: 'check', leaf: true },
+                    { label: 'Pineapple', type: 'check', leaf: true },
+                    { label: 'Kiwi', type: 'check', leaf: true },
+                    { label: 'Orange', type: 'check', leaf: true },
+                    { label: 'Pomegranate', type: 'check', leaf: true }
+                ]
+            },
+            {
+                label: 'Radio',
+                expanded: true,
+                children: [
+                    { label: 'Watermelon', type: 'radio', leaf: true },
+                    { label: 'Apricot', type: 'radio', leaf: true },
+                    { label: 'Pineapple', type: 'radio', leaf: true },
+                    { label: 'Kiwi', type: 'radio', leaf: true },
+                    { label: 'Orange', type: 'radio', leaf: true },
+                    { label: 'Pomegranate', type: 'radio', leaf: true }
+                ]
+            },
+            {
+                label: 'Task',
+                type: 'task',
+                expanded: true,
+                children: [
+                    { label: 'Watermelon', type: 'task', leaf: true },
+                    { label: 'Apricot', type: 'task', leaf: true },
+                    { label: 'Pineapple', type: 'task', leaf: true },
+                    { label: 'Kiwi', type: 'task', leaf: true },
+                    { label: 'Orange', type: 'task', leaf: true },
+                    { label: 'Pomegranate', type: 'task', leaf: true }
+                ]
+            }
+        ]
+    }).render();
+});
+</pre>
+            </div>
+        </div>
+
+        <!-- Scheduler -->
+
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Scheduler</h2>
+                <div id="scheduler"></div>
+                <script>
+                YUI({ filter: 'raw' }).use('aui-scheduler', 'aui-accessible-dd', function(Y) {
+
+                    var items = [
+                        {
+                            content: 'Wake Early'
+                        },
+                        {
+                            content: 'Exercise'
+                        },
+                        {
+                            content: 'Review or (even better) Rewrite Your Goals',
+                            startDate: new Date(2013, 1, 4, 12),
+                            endDate: new Date(2013, 1, 4, 16)
+                        }
+                    ];
+
+                    new Y.Scheduler({
+                        boundingBox: '#scheduler',
+                        items: items,
+                        views: [
+                            new Y.SchedulerWeekView(),
+                            new Y.SchedulerDayView(),
+                            new Y.SchedulerMonthView(),
+                            new Y.SchedulerAgendaView()
+                        ],
+                        eventRecorder: new Y.SchedulerEventRecorder()
+                        // firstDayOfWeek: 1,
+                        // activeView: weekView,
+                        // views: [dayView, weekView, monthView, agendaView]
+                    }).render();
+
+                });
+                </script>
+<pre>
+YUI({ filter: 'raw' }).use('aui-scheduler', 'aui-accessible-dd', function(Y) {
+
+    var items = [
+        {
+            content: 'Wake Early'
+        },
+        {
+            content: 'Exercise'
+        },
+        {
+            content: 'Review or (even better) Rewrite Your Goals',
+            startDate: new Date(2013, 1, 4, 12),
+            endDate: new Date(2013, 1, 4, 16)
+        }
+    ];
+
+    new Y.Scheduler({
+        boundingBox: '#scheduler',
+        items: items,
+        views: [
+            new Y.SchedulerWeekView(),
+            new Y.SchedulerDayView(),
+            new Y.SchedulerMonthView(),
+            new Y.SchedulerAgendaView()
+        ],
+        eventRecorder: new Y.SchedulerEventRecorder()
+        // firstDayOfWeek: 1,
+        // activeView: weekView,
+        // views: [dayView, weekView, monthView, agendaView]
+    }).render();
+
+});
+</pre>
+            </div> <!-- col -->
+        </div> <!-- row -->
+    </div> <!-- container -->
+</body>
+</html>

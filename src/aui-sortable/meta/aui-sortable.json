@@ -24,7 +24,8 @@
             "dd-drop",
             "dd-proxy",
             "aui-node",
-            "aui-component"
+            "aui-component",
+            "aui-accessible-dd"
         ]
     }
 }
