@@ -1,6 +1,7 @@
 var Y = A;
 YUI.Env.aliases = YUI.Env.aliases || {};
 Y.mix(YUI.Env.aliases, {
+    "aui-accessible-dd": ["aui-accessible-dd-delegate","aui-accessible-dd-drag","aui-accessible-dd-drop"],
     "aui-autosize": ["aui-autosize-iframe"],
     "aui-base": ["oop","yui-throttle","aui-classnamemanager","aui-debounce","aui-base-core","aui-base-lang","aui-node-base"],
     "aui-button": ["aui-button-core"],
@@ -11,7 +12,7 @@ Y.mix(YUI.Env.aliases, {
     "aui-io": ["aui-io-request"],
     "aui-node": ["aui-node-base"],
     "aui-rating": ["aui-rating-base","aui-rating-thumb"],
-    "aui-scheduler": ["aui-scheduler-base","aui-scheduler-event-recorder","aui-scheduler-view-agenda","aui-scheduler-view-day","aui-scheduler-view-month","aui-scheduler-view-table-dd","aui-scheduler-view-table","aui-scheduler-view-week","aui-viewport"],
+    "aui-scheduler": ["event-gestures","aui-scheduler-base","aui-scheduler-event-recorder","aui-scheduler-view-agenda","aui-scheduler-view-day","aui-scheduler-view-month","aui-scheduler-view-table-dd","aui-scheduler-view-table","aui-scheduler-view-week","aui-viewport"],
     "aui-search": ["aui-search-tst"],
     "aui-sortable": ["aui-sortable-layout","aui-sortable-list"],
     "aui-surface": ["aui-surface-app","aui-surface-screen"],
