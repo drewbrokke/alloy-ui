@@ -8,6 +8,7 @@ No registries yet.
 
 ## [3.0.0](https://github.com/liferay/alloy-ui/releases/tag/3.0.0)
 
+* [AUI-1768](https://issues.liferay.com/browse/AUI-1768) Datatable radio and checkbox editors use correct Bootstrap markup
 * [AUI-1013](https://issues.liferay.com/browse/AUI-1013) Maximum call stack size exceeded when adding a column to datatable
 * [AUI-1592](https://issues.liferay.com/browse/AUI-1592) Fix modules behavior on touch screen desktop computers
 * [AUI-1550](https://issues.liferay.com/browse/AUI-1550) Make aui-datatable cell editing accessible
